@@ -1,125 +1,140 @@
+//memasukkan package yang di butuhkan oleh aplikasi
+import 'package:english_words/english_words.dart';
+//paket bahasa inggris
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+//paket untuk tampilan UI(material UI)
+import 'package:provider/provider.dart';
+//paket untuk interaksi aplikasi
 
-void main() => runApp(const MyApp());
+//fungsi main (fungsi utama)
+void main() {
+  runApp(MyApp());//memangggil fungsi runApp (yang menjalankan keseluruhan aplikasi di dalam runApp)
+}
 
+//membuat abtrak aplikasi dari statelesswidget (template aplikasi), aplikasi bernama MyApp
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key}); //menunjukakan bahawa aplikasi ini akan tetap, tidak berubah setelah di-build
 
-  @override
+  @override //mengganti nilai lama yang sudah ada di template, dengan niali yang baru (replace / overwrite)
   Widget build(BuildContext context) {
-    return MaterialApp( // Root widget
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('My Home Page'),
+    //fungsi build adalah fungsi yang membangun UI (mengatut posisi widget, dst)
+    //changenotifierprovider mendengarkan / mendeteksi semua interaksi yang terjadi di aplikasi
+    return ChangeNotifierProvider(
+      create: (context) => MyAppState(), //membuat satu state bernama MyAppState
+      child: MaterialApp( //pada state ini menggunakan style desain material UI
+        title: 'Namer App',//diberi judul Namer App
+        theme: ThemeData( // data tema aplikasi diberi warna DeepOrange
+          useMaterial3: true, // versi material UI yang di pakai versi 3
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color.fromARGB(255, 4, 194, 20)),
         ),
-        body: Center(
-          child: Builder(
-            builder: (context) {
-              return Column(
-                children: [
-                  const Text('Hello, World!'),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      print('Click!');
-                    },
-                    child: const Text('A button'),
-                  ),
-                ],
-              );
-            },
-          ),
-        ),
+        home: MyHomePage(), //nama halaman "MyHomePage" yang menggunakan state "MyAppState"
       ),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+// mendefinisikan isi MyAppState
+class MyAppState extends ChangeNotifier {
+  //state MyAppState di isi dengan 2 kata random yang di gabung. kata random tsb di simpan di variable wordpair
+  var current = WordPair.random();
+    void getNext() {
+    current = WordPair.random();
+    notifyListeners();
+  }
+    var favorites = <WordPair>[];
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  void toggleFavorite() {
+    if (favorites.contains(current)) {
+      favorites.remove(current);
+    } else {
+      favorites.add(current);
+    }
+    notifyListeners();
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
+class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
+    var appState = context.watch<MyAppState>();
+    var pair = appState.current;
+
+      IconData icon;
+    if (appState.favorites.contains(pair)) {
+      icon = Icons.favorite;
+    } else {
+      icon = Icons.favorite_border;
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+          children: [
+            BigCard(pair: pair),
+            SizedBox(height: 10),
+            Row(
+              mainAxisSize: MainAxisSize.min,//memposisikan button saya 
+              children: [
+
+                // ↓ And this.
+                ElevatedButton.icon(
+                  onPressed: () {
+                    appState.toggleFavorite();
+                  },
+                  icon: Icon(icon),
+                  label: Text('Like'),
+                ),
+                SizedBox(width: 10),
+
+                ElevatedButton(
+                  onPressed: () {
+                    appState.getNext();
+                  },
+                  child: Text('Next'),
+                ),
+              ],
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+class BigCard extends StatelessWidget {
+  const BigCard({
+    super.key,
+    required this.pair,
+  });
+
+  final WordPair pair;
+
+ 
+ 
+
+    @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context); //menambahkan tema pada card
+    //membuat style untuk teks,diberi nama style.stle warna mengikuti parrent
+    final style = theme.textTheme.displayMedium!.copyWith(
+      color: theme.colorScheme.onPrimary,
+    );
+
+    return Card(
+      //
+      color: theme.colorScheme.primary,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+
+        // ↓ Make the following change.
+        child: Text(
+          //mengubah kata dalam pair menjadi huruf kecil
+          pair.asLowerCase,
+          style: style,//menerapkan style dengan nama style yang sudah dibuat ke dalam text
+          //memberi label pada masing masing kata,supaya text terbaca dengan benar oleh aplikasi
+          semanticsLabel: "${pair.first} ${pair.second}",
+        ),
+      ),
     );
   }
 }
