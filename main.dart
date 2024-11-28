@@ -14,9 +14,9 @@ class MyApp extends StatelessWidget {
         ),
         body: Row(
           children: [
-            // Column on the left - konten kiri dengan ukuran tetap
+            
             Container(
-              width: 300, // Ukuran tetap untuk kolom kiri
+              width: 300, 
               padding: EdgeInsets.all(16.0),
               color: const Color.fromARGB(255, 235, 186, 52),
               child: Column(
